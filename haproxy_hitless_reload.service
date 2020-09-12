@@ -1,0 +1,22 @@
+[Unit]
+Description=HAProxy Load Balancer
+After=network.target syslog.service
+Wants=syslog.service
+
+[Service]
+Environment="CONFIG=/etc/haproxy/haproxy.cfg" "PIDFILE=/run/haproxy.pid" "OPTIONS="
+ExecStartPre=/usr/sbin/haproxy -f $CONFIG -c -q
+ExecStart=/usr/sbin/haproxy -W -f $CONFIG -p $PIDFILE $OPTIONS
+ExecReload=/usr/sbin/haproxy -f $CONFIG -c -q $OPTIONS
+ExecReload=/bin/kill -USR2 $MAINPID
+KillMode=mixed
+Restart=on-failure
+Type=forking
+
+[Install]
+WantedBy=multi-user.target
+
+-W - Master-worker mode, in this case -x is added to new worker processes automatically if there is at least one socket with option expose-fd listeners set on it.
+-x - Connect to the specified socket and try to retrieve any listening sockets from the old process, and use them instead of trying to bind new ones.
+-c - Check config file before start
+-q - Quite
